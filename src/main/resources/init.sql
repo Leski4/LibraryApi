@@ -1,0 +1,25 @@
+CREATE TABLE books
+(
+    id INTEGER DEFAULT CEILING(RANDOM() * 10000) PRIMARY KEY NOT NULL,
+    isbn VARCHAR(30) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    genre VARCHAR(50) NOT NULL,
+    author VARCHAR(150) NOT NULL,
+    description VARCHAR(500)
+);
+
+CREATE TABLE track_of_books
+(
+    id SERIAL PRIMARY KEY NOT NULL,
+    book_id INTEGER NOT NULL,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP
+);
+
+CREATE TABLE users
+(
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL
+);

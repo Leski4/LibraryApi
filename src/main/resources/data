@@ -1,0 +1,42 @@
+{
+  "isbn": "978-3-16-148410-0",
+  "name": "The Great Gatsby",
+  "genre": "Fiction",
+  "author": "F. Scott Fitzgerald",
+  "description": "A novel set in the Roaring Twenties."
+}
+{
+  "isbn": "978-0-14-044913-6",
+  "name": "Crime and Punishment",
+  "genre": "Classic",
+  "author": "Fyodor Dostoevsky",
+  "description": "A psychological drama about guilt and redemption."
+}
+{
+  "isbn": "978-0-7432-7356-5",
+  "name": "To Kill a Mockingbird",
+  "genre": "Fiction",
+  "author": "Harper Lee",
+  "description": "A story of racial injustice in the Deep South."
+}
+{
+  "isbn": "978-0-452-28423-4",
+  "name": "1984",
+  "genre": "Dystopian",
+  "author": "George Orwell",
+  "description": "A novel about a totalitarian regime."
+}
+{
+  "isbn": "978-0-06-112008-4",
+  "name": "Brave New World",
+  "genre": "Science Fiction",
+  "author": "Aldous Huxley",
+  "description": "A futuristic Society controlled by technology."
+}
+{
+  "isbn": "978-0-14-118280-3",
+  "name": "The Catcher in the Rye",
+  "genre": "Fiction",
+  "author": "J.D. Salinger",
+  "description": "A story about teenage rebellion and angst."
+}
