@@ -27,7 +27,7 @@ public class BookController {
 
     private final TypeMap<Book,TrackOfBook> typeMap = modelMapper.createTypeMap(Book.class,TrackOfBook.class);
     {
-        typeMap.addMappings(mapper -> mapper.map(Book::getId,TrackOfBook::setBookId));
+        typeMap.addMappings(mapper -> mapper.map(Book::getIsbn,TrackOfBook::setBookIsbn));
     }
     @Autowired
     public BookController(BookService bookService, LibraryService libraryService){
@@ -44,24 +44,24 @@ public class BookController {
     @GetMapping("/book/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Получение книги по её id")
-    public ResponseEntity<Book> getBookById(@PathVariable int id){
+    public ResponseEntity<Book> getBookById(@PathVariable String id){
         Book book = bookService.getBookById(id);
         /*BookDto bookDto = modelMapper.map(book,BookDto.class);*/
         return ResponseEntity.ok(book);
     }
-    @GetMapping("/book/byISBN/{isbn}")
+/*    @GetMapping("/book/byISBN/{isbn}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Получение книги по её isbn")
     public ResponseEntity<Book> getBooksByISBN(@PathVariable String isbn){
         Book book = bookService.getBookByISBN(isbn);
-/*        BookDto bookDto = modelMapper.map(book,BookDto.class);*/
+*//*        BookDto bookDto = modelMapper.map(book,BookDto.class);*//*
         return ResponseEntity.ok(book);
-    }
+    }*/
     @PostMapping("/book")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Добавление книги")
-    public ResponseEntity<BookDto> addBook(@RequestBody BookDto bookDto){
-        Book book = modelMapper.map(bookDto,Book.class);
+    public ResponseEntity<BookDto> addBook(@RequestBody Book book){
+        BookDto bookDto = modelMapper.map(book,BookDto.class);
         bookService.addBook(book);
 
         TrackOfBook trackOfBook = typeMap.map(book);
@@ -71,14 +71,14 @@ public class BookController {
     @DeleteMapping("/book/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Удаление книги")
-    public void deleteById(@PathVariable int id){
+    public void deleteById(@PathVariable String id){
         bookService.deleteById(id);
-        libraryService.deleteTrackByBookId(id);
+        libraryService.deleteTrackByBookIsbn(id);
     }
     @PutMapping("/book/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Редактирование книги по id")
-    public ResponseEntity<BookDto> updateBook(@PathVariable int id, @RequestBody BookDto bookDto){
+    public ResponseEntity<BookDto> updateBook(@PathVariable String id, @RequestBody BookDto bookDto){
         Book newVersionOfBook = modelMapper.map(bookDto,Book.class);
         Book laterVersionOfBook = bookService.getBookById(id);
         laterVersionOfBook.setAuthor(newVersionOfBook.getAuthor());

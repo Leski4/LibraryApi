@@ -13,10 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class TrackOfBook {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    @Column(name = "book_id")
-    private int bookId;
+    private String bookIsbn;
     @Column(name = "start_date")
     private LocalDateTime startDate;
     @Column(name = "end_date")

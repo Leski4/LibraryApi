@@ -18,12 +18,11 @@ public class LibraryService {
     public void addTrack(TrackOfBook trackOfBook){
         trackOfBookRepository.save(trackOfBook);
     }
-    public void deleteTrackByBookId(int bookId){
-        TrackOfBook trackOfBook = trackOfBookRepository.findByBookId(bookId);
-        trackOfBookRepository.delete(trackOfBook);
+    public void deleteTrackByBookIsbn(String bookIsbn){
+        trackOfBookRepository.deleteById(bookIsbn);
     }
-    public TrackOfBook getTrackByBookId(int bookId){
-        return trackOfBookRepository.findByBookId(bookId);
+    public TrackOfBook getTrackByBookIsbn(String bookIsbn){
+        return trackOfBookRepository.findById(bookIsbn).orElse(null);
     }
     public List<TrackOfBook> getAllTrackOfBooks(){
         return trackOfBookRepository.findAll();

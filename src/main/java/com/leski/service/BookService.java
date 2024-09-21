@@ -17,16 +17,13 @@ public class BookService {
     public List<Book> getAllBooks(){
         return bookRepository.findAll();
     }
-    public Book getBookById(int id){
+    public Book getBookById(String id){
         return bookRepository.findById(id).orElse(null);
     }
     public void addBook(Book book){
         bookRepository.save(book);
     }
-    public void deleteById(int id){
+    public void deleteById(String id){
         bookRepository.deleteById(id);
-    }
-    public Book getBookByISBN(String isbn){
-        return bookRepository.findByIsbn(isbn);
     }
 }

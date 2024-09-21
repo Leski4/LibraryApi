@@ -17,9 +17,6 @@ import lombok.*;
 @NoArgsConstructor
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    @Column
     private String isbn;
     @Column
     private String name;

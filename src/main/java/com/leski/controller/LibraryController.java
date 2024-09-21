@@ -47,8 +47,8 @@ public class LibraryController {
     @GetMapping("/takeBookById/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Взятие книги")
-    public ResponseEntity<TrackOfBookDto> takeBook(@PathVariable int id){
-        TrackOfBook trackOfBook = libraryService.getTrackByBookId(id);
+    public ResponseEntity<TrackOfBookDto> takeBook(@PathVariable String id){
+        TrackOfBook trackOfBook = libraryService.getTrackByBookIsbn(id);
         trackOfBook.setStartDate(LocalDateTime.now());
         trackOfBook.setEndDate(LocalDateTime.now().plusMonths(1));
         libraryService.addTrack(trackOfBook);
