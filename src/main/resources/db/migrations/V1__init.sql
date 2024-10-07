@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS books
+(
+    isbn VARCHAR(30) PRIMARY KEY NOT NULL UNIQUE,
+    name VARCHAR(150) NOT NULL,
+    genre VARCHAR(50) NOT NULL,
+    author VARCHAR(150) NOT NULL,
+    description VARCHAR(500),
+    taken_status BOOLEAN DEFAULT FALSE,
+    date_of_take TIMESTAMP DEFAULT NULL,
+    reader_name VARCHAR(200) DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users
+(
+    username VARCHAR(200) PRIMARY KEY UNIQUE,
+    role VARCHAR(10) NOT NULL
+);

@@ -1,16 +1,18 @@
 package com.leski.model;
 
 import com.leski.service.JwtService;
-import com.leski.service.UserService;
 
+import com.leski.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-
+import java.util.Collection;
+import java.util.List;
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -43,17 +47,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var jwt = authHeader.substring(BEARER_PREFIX.length());
         var username = jwtService.extractUserName(jwt);
+        var role = jwtService.extractRoles(jwt);
 
-        if (StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService
-                    .userDetailsService()
-                    .loadUserByUsername(username);
+        if(username != null && role != null && !userService.existsUser(username)){
+            userService.save(User.builder().username(username).role((Role.valueOf(((String) role.stream().toList().getFirst())))).build());
+        }
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+           UserDetails userDetails = userService
+                   .userDetailsService()
+                   .loadUserByUsername(username);
+
+           if (jwtService.isTokenValid(jwt)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
-
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        userDetails.getUsername(),
                         null,
                         userDetails.getAuthorities()
                 );
@@ -61,7 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 context.setAuthentication(authToken);
                 SecurityContextHolder.setContext(context);
-            }
+           }
         }
         filterChain.doFilter(request, response);
     }

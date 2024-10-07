@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "books")
 @Setter
@@ -26,4 +28,10 @@ public class Book {
     private String author;
     @Column
     private String description;
+    @Column(name="taken_status")
+    private Boolean takenStatus;
+    @Column(name="date_of_take")
+    private LocalDateTime dateOfTake;
+    @Column(name="reader_name")
+    private String readerName;
 }

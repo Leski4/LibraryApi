@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class TrackOfBookDto {
-    private String bookIsbn;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private String isbn;
+    private Boolean takenStatus;
+    private LocalDateTime dateOfTake;
+    private String readerName;
 }

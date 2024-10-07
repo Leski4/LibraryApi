@@ -10,18 +10,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository repository;
     public User save(User user) {
         return repository.save(user);
     }
 
-    public User create(User user) {
-        repository.existsByUsername(user.getUsername());
-        return save(user);
+    public boolean existsByUsername(String userName) {
+        return repository.existsByUsername(userName);
     }
+
     public User getCurrentUser() {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         return getByUsername(username);
+    }
+
+    public boolean existsUser(String username){
+        return repository.findById(username).isPresent();
     }
 
     public UserDetailsService userDetailsService() {
@@ -29,7 +34,6 @@ public class UserService {
     }
     public User getByUsername(String username) {
         return repository.findByUsername(username)
-                .orElseThrow(() -> null);
+                .orElse(null);
     }
-
 }
