@@ -1,11 +1,13 @@
 package com.leski.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class TrackOfBookDto {
     private String isbn;
     private Boolean takenStatus;

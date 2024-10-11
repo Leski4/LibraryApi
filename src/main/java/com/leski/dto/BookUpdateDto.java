@@ -1,13 +1,13 @@
 package com.leski.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
-@NoArgsConstructor
-public class BookDto {
-    private String isbn;
+public class BookUpdateDto {
     private String name;
     private String genre;
     private String author;

@@ -1,27 +1,50 @@
 package com.leski.service;
 
+import com.leski.dto.BookDto;
 import com.leski.model.Book;
 import com.leski.repository.BookRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class BookService {
     private final BookRepository bookRepository;
+    private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
     public BookService(BookRepository bookRepository){
         this.bookRepository = bookRepository;
     }
-    public List<Book> getAllBooks(){
-        return bookRepository.findAll();
+    public List<BookDto> getAllBooks(Integer pageNo, Integer pageSize){
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Book> pagedResult = bookRepository.findAll(pageable);
+        List<Book> books;
+
+        if(pagedResult.hasContent()){
+            books = pagedResult.getContent();
+        }else
+            return new ArrayList<BookDto>();
+
+        return books.stream()
+                .map(book -> modelMapper.map(book, BookDto.class))
+                .toList();
     }
-    public Book getBookById(String id){
-        return bookRepository.findById(id).orElse(null);
+    public BookDto getBookById(String id){
+        Book book = bookRepository.findById(id).orElse(null);
+        return modelMapper.map(book,BookDto.class);
     }
-    public void addBook(Book book){
-        bookRepository.save(book);
+    public boolean existsBookById(String id){
+        return bookRepository.existsByIsbn(id);
+    }
+    public void addOrUpdateBook(BookDto book){
+        Book bookForAdd = modelMapper.map(book, Book.class);
+        bookRepository.save(bookForAdd);
     }
     public void deleteById(String id){
         bookRepository.deleteById(id);

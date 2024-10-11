@@ -1,5 +1,7 @@
-package com.leski.model;
+package com.leski.security;
 
+import com.leski.model.Role;
+import com.leski.model.User;
 import com.leski.service.JwtService;
 
 import com.leski.service.UserService;
@@ -50,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         var role = jwtService.extractRoles(jwt);
 
         if(username != null && role != null && !userService.existsUser(username)){
-            userService.save(User.builder().username(username).role((Role.valueOf(((String) role.stream().toList().getFirst())))).build());
+            userService.save(User.builder().username(username).role((Role.valueOf(role))).build());
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {

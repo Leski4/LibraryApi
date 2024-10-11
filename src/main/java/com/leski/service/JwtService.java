@@ -30,9 +30,9 @@ public class JwtService {
         Claims claims = extractAllClaims(token);
         return claims.getSubject();
     }
-    public Collection extractRoles(String token){
+    public String extractRoles(String token){
         Claims claims = extractAllClaims(token);
-        return claims.getAudience();
+        return claims.getAudience().stream().findFirst().orElse(null);
     }
 
     public boolean isTokenValid(String token){
