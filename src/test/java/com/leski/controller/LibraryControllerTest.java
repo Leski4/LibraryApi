@@ -1,11 +1,10 @@
 package com.leski.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leski.dto.BookDto;
 import com.leski.service.LibraryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,10 +22,13 @@ public class LibraryControllerTest {
 
     @Autowired
     LibraryController libraryController;
+    @Autowired
+    private BookController bookController;
 
     private MockMvc mockMvc;
-    private final String ID = "978-0-14-118280-3";
-    private final String USERNAME = "govroshka";
+    private final String ID = "978-0-14-143951-8";
+    private final String USERNAME = "user";
+
 
     @BeforeEach
     void setUp(){
@@ -42,44 +44,68 @@ public class LibraryControllerTest {
     @Test
     @WithMockUser(username = USERNAME, authorities = { "USER" })
     void takeBook() throws Exception{
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+        bookController.addBook(book);
+
         mockMvc.perform(post("/tracks/{id}",ID))
                 .andExpect(status().isOk());
 
-        libraryController.returnBook(ID);
+        bookController.deleteById(ID);
     }
 
     @Test
     void getTracksOfBooks() throws Exception{
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+        bookController.addBook(book);
+
         libraryController.makeTrack(USERNAME,ID);
 
         mockMvc.perform(get("/tracks/admin"))
                 .andExpect(status().isOk());
 
-        libraryController.deleteTrack(USERNAME,ID);
+        bookController.deleteById(ID);
     }
 
     @Test
     @WithMockUser(username = USERNAME, authorities = { "USER" })
     void returnBook() throws Exception{
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+        bookController.addBook(book);
+
         libraryController.takeBook(ID);
 
         mockMvc.perform(delete("/tracks/{id}", ID))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
+
+        bookController.deleteById(ID);
     }
 
     @Test
     void makeTrack() throws Exception{
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+        bookController.addBook(book);
+
         mockMvc.perform(post("/tracks/admin/{username}/{id}",USERNAME, ID))
                 .andExpect(status().isOk());
 
-        libraryController.deleteTrack(USERNAME,ID);
+        bookController.deleteById(ID);
     }
 
     @Test
     void deleteTrack() throws Exception{
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+        bookController.addBook(book);
+
         libraryController.makeTrack(USERNAME,ID);
 
         mockMvc.perform(delete("/tracks/admin/{username}/{id}", USERNAME, ID))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
+
+        bookController.deleteById(ID);
     }
 }

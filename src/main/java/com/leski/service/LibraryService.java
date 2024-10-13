@@ -5,18 +5,14 @@ import com.leski.dto.TrackOfBookDto;
 import com.leski.model.Book;
 import com.leski.repository.BookRepository;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.internal.bytebuddy.description.annotation.AnnotationValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LibraryService {
@@ -25,10 +21,6 @@ public class LibraryService {
     @Autowired
     public LibraryService(BookRepository bookRepository){
         this.bookRepository = bookRepository;
-    }
-    public void deleteTrackByBookIsbn(String bookIsbn){
-        Book book = bookRepository.findById(bookIsbn).orElse(null);
-        bookRepository.save(book);
     }
     public TrackOfBookDto getTrackByBookIsbn(String bookIsbn){
         Book book = bookRepository.findById(bookIsbn).filter(Book::getTakenStatus).orElse(null);
@@ -73,7 +65,8 @@ public class LibraryService {
     }
 
     public TrackOfBookDto makeTrack(TrackOfBookDto trackOfBook) {
-        Book book = bookRepository.findById(trackOfBook.getIsbn()).orElse(null);
+        Book book = bookRepository.findById(trackOfBook.getIsbn()).
+                filter(book1 -> !book1.getTakenStatus()).orElse(null);
         if(book == null)
             return null;
         book.setTakenStatus(trackOfBook.getTakenStatus());

@@ -2,19 +2,13 @@ package com.leski.controller;
 
 import com.leski.dto.BookDto;
 import com.leski.dto.BookUpdateDto;
-import com.leski.model.Book;
 import com.leski.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.internal.bytebuddy.implementation.bind.annotation.Default;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,8 +32,11 @@ public class BookController {
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
         List<BookDto> books = bookService.getAllBooks(pageNo, pageSize);
-        if(books.isEmpty())
+        if(books.isEmpty()){
+            log.info("Page N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
+        }
+        log.info("Books from page N " + pageNo + " were received.");
         return ResponseEntity.ok(books);
     }
     @GetMapping("/{id}")
@@ -48,17 +45,23 @@ public class BookController {
     public ResponseEntity<BookDto> getBookById(@PathVariable String id){
         BookDto book = bookService.getBookById(id);
         if(book == null){
+            log.warn("Book by ID " + id + " does not exist.");
             return ResponseEntity.notFound().build();
         }
+        log.info("Book by ID " + id + " was received.");
         return ResponseEntity.ok(book);
     }
     @PostMapping("")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Добавление книги")
     public ResponseEntity<BookDto> addBook(@RequestBody BookDto book){
-        bookService.addOrUpdateBook(book);
-        if(!bookService.existsBookById(book.getIsbn()))
+        if(bookService.existsBookById(book.getIsbn()))
+        {
+            log.warn("Book by ID " + book.getIsbn() + " is already exists.");
             return ResponseEntity.badRequest().build();
+        }
+        bookService.addBook(book);
+        log.info("Book by name " + book.getName() + " was added.");
         return ResponseEntity.ok(book);
     }
     @DeleteMapping("/{id}")
@@ -66,9 +69,13 @@ public class BookController {
     @Operation(summary = "Удаление книги")
     public ResponseEntity<Void> deleteById(@PathVariable String id){
         if(!bookService.existsBookById(id))
-            return ResponseEntity.notFound().build();
+        {
+            log.warn("Book by ID " + id + " does not exist.");
+            return ResponseEntity.noContent().build();
+        }
         bookService.deleteById(id);
-        return ResponseEntity.ok().build();
+        log.info("Book by ID " + id + " was deleted.");
+        return ResponseEntity.noContent().build();
     }
     @PutMapping("/{id}")
     @SecurityRequirement(name = "JWT")
@@ -76,14 +83,20 @@ public class BookController {
     public ResponseEntity<BookDto> updateBook(@PathVariable String id, @RequestBody BookUpdateDto bookUpdateDto){
         BookDto book = bookService.getBookById(id);
         if(book == null)
+        {
+            log.warn("Book by ID " + id + " does not exist.");
             return ResponseEntity.notFound().build();
+        }
         book.setAuthor(bookUpdateDto.getAuthor());
         book.setName(bookUpdateDto.getName());
         book.setGenre(bookUpdateDto.getGenre());
         book.setDescription(bookUpdateDto.getDescription());
-        if(book.getName() == null || book.getGenre() == null || book.getAuthor() == null)
-            return ResponseEntity.badRequest().build();
-        bookService.addOrUpdateBook(book);
+        if(book.getName().isEmpty() || book.getGenre().isEmpty()  || book.getAuthor().isEmpty() ){
+            log.warn("Fields should be not null.");
+            return ResponseEntity.notFound().build();
+        }
+        bookService.updateBook(book);
+        log.info("Book by ID " + id + " was updated.");
         return ResponseEntity.ok(book);
     }
 }

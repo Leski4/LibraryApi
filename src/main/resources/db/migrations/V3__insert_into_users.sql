@@ -1,2 +1,5 @@
 INSERT INTO users
-VALUES ('govroshka', 'USER');
+VALUES ('user', 'USER'),
+('igor', 'USER'),
+('vlad', 'USER'),
+('admin', 'ADMIN');

@@ -3,7 +3,6 @@ package com.leski.security;
 import com.leski.model.Role;
 import com.leski.model.User;
 import com.leski.service.JwtService;
-
 import com.leski.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,8 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -49,30 +45,42 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var jwt = authHeader.substring(BEARER_PREFIX.length());
         var username = jwtService.extractUserName(jwt);
-        var role = jwtService.extractRoles(jwt);
-
-        if(username != null && role != null && !userService.existsUser(username)){
-            userService.save(User.builder().username(username).role((Role.valueOf(role))).build());
+        if(username != null && !userService.existsUser(username)){
+            var role = jwtService.extractRole(jwt);
+            if(role != null){
+                userService.save(User.builder().username(username)
+                        .role((Role.valueOf(role))).build());
+            }else
+                log.warn("Role is null.");
         }
 
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-           UserDetails userDetails = userService
-                   .userDetailsService()
-                   .loadUserByUsername(username);
+        UserDetails userDetails = userService
+                .userDetailsService()
+                .loadUserByUsername(username);
 
-           if (jwtService.isTokenValid(jwt)) {
+        if(userDetails == null){
+            log.error("UserDetails is empty.");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            if (jwtService.isTokenValid(jwt)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails.getUsername(),
                         null,
                         userDetails.getAuthorities()
                 );
-
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 context.setAuthentication(authToken);
                 SecurityContextHolder.setContext(context);
-           }
+                log.info("Authentication is successful.");
+            }
+            filterChain.doFilter(request, response);
+        } finally {
+            SecurityContextHolder.clearContext();
+            log.info("Security context was cleared.");
         }
-        filterChain.doFilter(request, response);
     }
 }
