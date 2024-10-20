@@ -1,6 +1,7 @@
 package com.leski.controller;
 
 import com.leski.dto.BookDto;
+import com.leski.model.Book;
 import com.leski.service.LibraryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ public class LibraryControllerTest {
     @Test
     @WithMockUser(username = USERNAME, authorities = { "USER" })
     void takeBook() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -56,7 +57,7 @@ public class LibraryControllerTest {
 
     @Test
     void getTracksOfBooks() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -71,7 +72,7 @@ public class LibraryControllerTest {
     @Test
     @WithMockUser(username = USERNAME, authorities = { "USER" })
     void returnBook() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -85,7 +86,7 @@ public class LibraryControllerTest {
 
     @Test
     void makeTrack() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -97,7 +98,7 @@ public class LibraryControllerTest {
 
     @Test
     void deleteTrack() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 

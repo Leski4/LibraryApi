@@ -2,7 +2,7 @@ package com.leski.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leski.dto.BookDto;
-import com.leski.dto.BookUpdateDto;
+import com.leski.model.Book;
 import com.leski.service.BookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class BookControllerTest{
 
     @Test
     void addBook() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         String bookJson = objectMapper.writeValueAsString(book);
 
@@ -50,15 +50,15 @@ class BookControllerTest{
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bookJson)).andExpect(status().isOk());
 
-        bookController.deleteById(ID);
+        //bookController.deleteById(ID);
     }
     @Test
     void updateBook() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
-        BookUpdateDto bookUpdate = new BookUpdateDto("Pride",
+        BookDto bookUpdate = new BookDto("Pride",
                 "Romance", "Austen", "A story of love.");
         String bookUpdateJson = objectMapper.writeValueAsString(bookUpdate);
         mockMvc.perform(MockMvcRequestBuilders.put("/books/{id}", ID)
@@ -70,7 +70,7 @@ class BookControllerTest{
     }
     @Test
     void deleteBook() throws Exception{
-        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 

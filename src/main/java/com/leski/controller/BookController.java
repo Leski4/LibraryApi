@@ -1,20 +1,24 @@
 package com.leski.controller;
 
 import com.leski.dto.BookDto;
-import com.leski.dto.BookUpdateDto;
+import com.leski.model.Book;
 import com.leski.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 
 @RestController
+@Validated
 @RequestMapping("/books")
 @Tag(name = "Операции над книгами")
 @Slf4j
@@ -27,11 +31,11 @@ public class BookController {
     @GetMapping("")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Получение всех книг")
-    public ResponseEntity<List<BookDto>> getBooks(
+    public ResponseEntity<List<Book>> getBooks(
             @RequestParam(defaultValue = "0") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
-        List<BookDto> books = bookService.getAllBooks(pageNo, pageSize);
+        List<Book> books = bookService.getAllBooks(pageNo, pageSize);
         if(books.isEmpty()){
             log.info("Page N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
@@ -42,7 +46,7 @@ public class BookController {
     @GetMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Получение книги по её id")
-    public ResponseEntity<BookDto> getBookById(@PathVariable String id){
+    public ResponseEntity<BookDto> getBookById(@PathVariable @Size(min = 17, max = 17) String id){
         BookDto book = bookService.getBookById(id);
         if(book == null){
             log.warn("Book by ID " + id + " does not exist.");
@@ -54,7 +58,7 @@ public class BookController {
     @PostMapping("")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Добавление книги")
-    public ResponseEntity<BookDto> addBook(@RequestBody BookDto book){
+    public ResponseEntity<Book> addBook(@RequestBody @Valid Book book){
         if(bookService.existsBookById(book.getIsbn()))
         {
             log.warn("Book by ID " + book.getIsbn() + " is already exists.");
@@ -67,7 +71,7 @@ public class BookController {
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Удаление книги")
-    public ResponseEntity<Void> deleteById(@PathVariable String id){
+    public ResponseEntity<Void> deleteById(@PathVariable @Size(min = 17, max = 17) String id){
         if(!bookService.existsBookById(id))
         {
             log.warn("Book by ID " + id + " does not exist.");
@@ -80,18 +84,22 @@ public class BookController {
     @PutMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Редактирование книги по id")
-    public ResponseEntity<BookDto> updateBook(@PathVariable String id, @RequestBody BookUpdateDto bookUpdateDto){
-        BookDto book = bookService.getBookById(id);
-        if(book == null)
+    public ResponseEntity<Book> updateBook(@PathVariable @Size(min = 17, max = 17) String id,
+                                           @RequestBody @Valid BookDto bookUpdateDto){
+        if(!bookService.existsBookById(id))
         {
             log.warn("Book by ID " + id + " does not exist.");
             return ResponseEntity.notFound().build();
         }
+        Book book = new Book();
+        book.setIsbn(id);
         book.setAuthor(bookUpdateDto.getAuthor());
         book.setName(bookUpdateDto.getName());
         book.setGenre(bookUpdateDto.getGenre());
         book.setDescription(bookUpdateDto.getDescription());
-        if(book.getName().isEmpty() || book.getGenre().isEmpty()  || book.getAuthor().isEmpty() ){
+        if(book.getName().trim().isEmpty()
+                || book.getGenre().trim().isEmpty()
+                || book.getAuthor().trim().isEmpty() ){
             log.warn("Fields should be not null.");
             return ResponseEntity.notFound().build();
         }

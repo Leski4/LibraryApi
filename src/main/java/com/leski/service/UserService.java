@@ -3,13 +3,14 @@ package com.leski.service;
 import com.leski.model.User;
 import com.leski.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
+    @Autowired
     private final UserRepository repository;
     public User save(User user) {
         return repository.save(user);

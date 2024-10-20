@@ -4,10 +4,16 @@ CREATE TABLE IF NOT EXISTS books
     name VARCHAR(150) NOT NULL,
     genre VARCHAR(50) NOT NULL,
     author VARCHAR(150) NOT NULL,
-    description VARCHAR(500),
-    taken_status BOOLEAN DEFAULT FALSE,
+    description VARCHAR(500)
+);
+
+CREATE TABLE IF NOT EXISTS tracks
+(
+    book_isbn VARCHAR(30) PRIMARY KEY UNIQUE,
+    status VARCHAR(100) DEFAULT 'IS_FREE' NOT NULL,
     date_of_take TIMESTAMP DEFAULT NULL,
-    reader_name VARCHAR(200) DEFAULT NULL
+    reader_name VARCHAR(200) DEFAULT NULL,
+    FOREIGN KEY (book_isbn) REFERENCES books(isbn) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS users

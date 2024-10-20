@@ -2,7 +2,10 @@ package com.leski.service;
 
 import com.leski.dto.BookDto;
 import com.leski.model.Book;
+import com.leski.model.Status;
+import com.leski.model.Track;
 import com.leski.repository.BookRepository;
+import com.leski.repository.TrackRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +22,14 @@ import java.util.Optional;
 @Slf4j
 public class BookService {
     private final BookRepository bookRepository;
+    private final TrackRepository trackRepository;
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
-    public BookService(BookRepository bookRepository){
+    public BookService(BookRepository bookRepository, TrackRepository trackRepository){
         this.bookRepository = bookRepository;
+        this.trackRepository = trackRepository;
     }
-    public List<BookDto> getAllBooks(Integer pageNo, Integer pageSize){
+    public List<Book> getAllBooks(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Book> pagedResult = bookRepository.findAll(pageable);
         List<Book> books;
@@ -32,36 +37,27 @@ public class BookService {
         if(pagedResult.hasContent()){
             books = pagedResult.getContent();
         }else
-            return new ArrayList<BookDto>();
+            return new ArrayList<Book>();
 
-        return books.stream()
-                .map(book -> modelMapper.map(book, BookDto.class))
-                .toList();
+        return books;
     }
     public BookDto getBookById(String id){
         Book book = bookRepository.findById(id).orElse(null);
         if(book == null)
             return null;
-        return modelMapper.map(book,BookDto.class);
+        return modelMapper.map(book, BookDto.class);
     }
     public boolean existsBookById(String id){
         return bookRepository.existsByIsbn(id);
     }
-    public void addBook(BookDto book){
-        Book bookForAdd = modelMapper.map(book, Book.class);
-        bookForAdd.setTakenStatus(false);
-        bookRepository.save(bookForAdd);
+    public void addBook(Book book){
+        bookRepository.save(book);
+        Track track = new Track(book.getIsbn(), Status.IS_FREE,
+                null,null, book);
+        trackRepository.save(track);
     }
-    public void updateBook(BookDto book){
-        Optional<Book> optionalBook = bookRepository.findById(book.getIsbn());
-        if(optionalBook.isEmpty())
-            return;
-        Book primaryBook = optionalBook.get();
-        Book bookForUpdate = modelMapper.map(book, Book.class);
-        bookForUpdate.setTakenStatus(primaryBook.getTakenStatus());
-        bookForUpdate.setDateOfTake(primaryBook.getDateOfTake());
-        bookForUpdate.setReaderName(primaryBook.getReaderName());
-        bookRepository.save(bookForUpdate);
+    public void updateBook(Book book){
+        bookRepository.save(book);
     }
     public void deleteById(String id){
         bookRepository.deleteById(id);

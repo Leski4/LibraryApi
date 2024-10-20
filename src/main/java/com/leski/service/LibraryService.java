@@ -3,7 +3,10 @@ package com.leski.service;
 import com.leski.dto.BookDto;
 import com.leski.dto.TrackOfBookDto;
 import com.leski.model.Book;
+import com.leski.model.Status;
+import com.leski.model.Track;
 import com.leski.repository.BookRepository;
+import com.leski.repository.TrackRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,73 +19,71 @@ import java.util.List;
 
 @Service
 public class LibraryService {
-    private final BookRepository bookRepository;
+    private final TrackRepository trackRepository;
     private final ModelMapper modelMapper = new ModelMapper();
     @Autowired
-    public LibraryService(BookRepository bookRepository){
-        this.bookRepository = bookRepository;
+    public LibraryService(TrackRepository trackRepository){
+        this.trackRepository = trackRepository;
     }
     public TrackOfBookDto getTrackByBookIsbn(String bookIsbn){
-        Book book = bookRepository.findById(bookIsbn).filter(Book::getTakenStatus).orElse(null);
+        Track track = trackRepository.findById(bookIsbn).filter(track1 -> track1.getStatus().name().equals("IS_BUSY")).orElse(null);
         TrackOfBookDto trackOfBookDto;
-        if(book != null)
-            trackOfBookDto = modelMapper.map(book, TrackOfBookDto.class);
+        if(track != null)
+            trackOfBookDto = modelMapper.map(track, TrackOfBookDto.class);
         else
             return null;
         return trackOfBookDto;
     }
-    public List<TrackOfBookDto> getAllTrackOfBooks(Integer pageNo, Integer pageSize){
+    public List<Track> getAllTracksOfBooks(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
 
-        Page<Book> pageResult = bookRepository.findAllByTakenStatus(true, pageable);
+        Page<Track> pageResult = trackRepository.findAll(pageable);
 
-        List<Book> tracks;
+        List<Track> tracks;
 
         if(pageResult.hasContent())
             tracks = pageResult.getContent();
         else
             return new ArrayList<>();
 
-        return tracks.stream()
-                .map(book -> modelMapper.map(book, TrackOfBookDto.class))
-                .toList();
+        return tracks;
     }
 
-    public List<BookDto> getAllFreeBooks(Integer pageNo, Integer pageSize){
+    public List<Book> getAllFreeBooks(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
 
-        Page<Book> pagedResult = bookRepository.findAllByTakenStatus(false,pageable);
-        List<Book> books;
+        Page<Track> pagedResult = trackRepository.findAllByStatus(Status.IS_FREE, pageable);
+        List<Track> freeBooks;
 
         if(pagedResult.hasContent())
-            books = pagedResult.getContent();
+            freeBooks = pagedResult.getContent();
         else
             return new ArrayList<>();
 
-        return books.stream()
-                .map(freeBook -> modelMapper.map(freeBook, BookDto.class))
+        return freeBooks.stream()
+                .map(Track::getBook)
                 .toList();
     }
 
     public TrackOfBookDto makeTrack(TrackOfBookDto trackOfBook) {
-        Book book = bookRepository.findById(trackOfBook.getIsbn()).
-                filter(book1 -> !book1.getTakenStatus()).orElse(null);
-        if(book == null)
+        Track track = trackRepository.findById(trackOfBook.getIsbn()).
+                filter(track1 -> track1.getStatus().name().equals("IS_FREE")).orElse(null);
+        if(track == null)
             return null;
-        book.setTakenStatus(trackOfBook.getTakenStatus());
-        book.setDateOfTake(trackOfBook.getDateOfTake());
-        book.setReaderName(trackOfBook.getReaderName());
-        bookRepository.save(book);
-        return modelMapper.map(book, TrackOfBookDto.class);
+        track.setStatus(trackOfBook.getStatus());
+        track.setDateOfTake(trackOfBook.getDateOfTake());
+        track.setReaderName(trackOfBook.getReaderName());
+        trackRepository.save(track);
+        return modelMapper.map(track, TrackOfBookDto.class);
     }
     public boolean deleteTrack(TrackOfBookDto trackOfBook) {
-        Book book = bookRepository.findById(trackOfBook.getIsbn()).orElse(null);
-        if(book == null)
+        Track track = trackRepository.findById(trackOfBook.getIsbn()).orElse(null);
+        if(track == null)
             return false;
-        book.setReaderName(null);
-        book.setDateOfTake(null);
-        book.setTakenStatus(false);
-        bookRepository.save(book);
+        track.setStatus(Status.IS_FREE);
+        track.setReaderName(null);
+        track.setDateOfTake(null);
+        trackRepository.save(track);
         return true;
     }
 }
