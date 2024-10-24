@@ -2,16 +2,29 @@ package com.leski.controller;
 
 import com.leski.dto.BookDto;
 import com.leski.model.Book;
+import com.leski.repository.BookRepository;
+import com.leski.security.JwtAuthenticationFilter;
 import com.leski.service.LibraryService;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.RequestHeader;
 
+import static java.lang.String.format;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -19,21 +32,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 public class LibraryControllerTest {
     @Autowired
-    LibraryService libraryService;
-
-    @Autowired
     LibraryController libraryController;
     @Autowired
     private BookController bookController;
-
+    @Autowired
+    private BookRepository bookRepository;
     private MockMvc mockMvc;
     private final String ID = "978-0-14-143951-8";
     private final String USERNAME = "user";
 
+    private String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwiYXVkIjoiVVNFUiJ9.fCne0vHf9Cu4PWHwCZYAbdMtxXTL2A1yXXuSrn0NJyk";
+
+    @Autowired
+    private JwtAuthenticationFilter filter;
 
     @BeforeEach
-    void setUp(){
-        mockMvc = MockMvcBuilders.standaloneSetup(libraryController).build();
+    void setUp() throws Exception {
+        this.token = "Bearer " + token;
+        mockMvc = MockMvcBuilders.standaloneSetup(libraryController)
+                .addFilter(filter)
+                .build();
     }
 
     @Test
@@ -43,20 +61,20 @@ public class LibraryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = USERNAME, authorities = { "USER" })
-    void takeBook() throws Exception{
+    void takeBookTestWithJWT() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
-        mockMvc.perform(post("/tracks/{id}",ID))
-                .andExpect(status().isOk());
+        mockMvc.perform(post("/tracks/{id}",ID)
+                        .header("Authorization", this.token))
+                        .andExpect(status().isOk());
 
-        bookController.deleteById(ID);
+        bookRepository.deleteById(ID);
     }
 
     @Test
-    void getTracksOfBooks() throws Exception{
+    void getTracksOfBooksTest() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
@@ -66,26 +84,26 @@ public class LibraryControllerTest {
         mockMvc.perform(get("/tracks/admin"))
                 .andExpect(status().isOk());
 
-        bookController.deleteById(ID);
+        bookRepository.deleteById(ID);
     }
 
     @Test
-    @WithMockUser(username = USERNAME, authorities = { "USER" })
-    void returnBook() throws Exception{
+    void returnBookTestWithJWT() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
-        libraryController.takeBook(ID);
+        libraryController.makeTrack(USERNAME,ID);
 
-        mockMvc.perform(delete("/tracks/{id}", ID))
+        mockMvc.perform(delete("/tracks/{id}", ID)
+                        .header("Authorization", this.token))
                 .andExpect(status().isNoContent());
 
-        bookController.deleteById(ID);
+        bookRepository.deleteById(ID);
     }
 
     @Test
-    void makeTrack() throws Exception{
+    void makeTrackTest() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
@@ -93,11 +111,16 @@ public class LibraryControllerTest {
         mockMvc.perform(post("/tracks/admin/{username}/{id}",USERNAME, ID))
                 .andExpect(status().isOk());
 
-        bookController.deleteById(ID);
+        bookRepository.deleteById(ID);
     }
 
     @Test
-    void deleteTrack() throws Exception{
+    void makeTrackFailTest() throws Exception{
+        mockMvc.perform(post("/tracks/admin/{username}/{id}",USERNAME, ID))
+                .andExpect(status().isNotFound());
+    }
+    @Test
+    void deleteTrackTest() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
@@ -107,6 +130,18 @@ public class LibraryControllerTest {
         mockMvc.perform(delete("/tracks/admin/{username}/{id}", USERNAME, ID))
                 .andExpect(status().isNoContent());
 
-        bookController.deleteById(ID);
+        bookRepository.deleteById(ID);
+    }
+
+    @Test
+    void deleteTrackFailTest() throws Exception{
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+        bookController.addBook(book);
+
+        mockMvc.perform(delete("/tracks/admin/{username}/{id}", USERNAME, ID))
+                .andExpect(status().isNotFound());
+
+        bookRepository.deleteById(ID);
     }
 }

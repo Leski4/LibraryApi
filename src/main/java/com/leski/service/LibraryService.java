@@ -1,11 +1,9 @@
 package com.leski.service;
 
-import com.leski.dto.BookDto;
 import com.leski.dto.TrackOfBookDto;
 import com.leski.model.Book;
 import com.leski.model.Status;
 import com.leski.model.Track;
-import com.leski.repository.BookRepository;
 import com.leski.repository.TrackRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,7 +31,7 @@ public class LibraryService {
             return null;
         return trackOfBookDto;
     }
-    public List<Track> getAllTracksOfBooks(Integer pageNo, Integer pageSize){
+    public List<TrackOfBookDto> getAllTracksOfBooks(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
 
         Page<Track> pageResult = trackRepository.findAll(pageable);
@@ -44,9 +41,11 @@ public class LibraryService {
         if(pageResult.hasContent())
             tracks = pageResult.getContent();
         else
-            return new ArrayList<>();
+            return null;
 
-        return tracks;
+        return tracks.stream()
+                .map(track -> modelMapper.map(track, TrackOfBookDto.class))
+                .toList();
     }
 
     public List<Book> getAllFreeBooks(Integer pageNo, Integer pageSize){
@@ -58,7 +57,7 @@ public class LibraryService {
         if(pagedResult.hasContent())
             freeBooks = pagedResult.getContent();
         else
-            return new ArrayList<>();
+            return null;
 
         return freeBooks.stream()
                 .map(Track::getBook)

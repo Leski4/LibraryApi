@@ -35,13 +35,13 @@ class BookControllerTest{
     }
 
     @Test
-    void allBooks() throws Exception {
+    void allBooksTest() throws Exception {
         mockMvc.perform(get("/books"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void addBook() throws Exception{
+    void addBookTest() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         String bookJson = objectMapper.writeValueAsString(book);
@@ -50,10 +50,27 @@ class BookControllerTest{
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bookJson)).andExpect(status().isOk());
 
-        //bookController.deleteById(ID);
+        bookController.deleteById(ID);
     }
+
     @Test
-    void updateBook() throws Exception{
+    void addBookFailTest() throws Exception{
+        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+                ,"A story of love and misunderstandings in early 19th century England.");
+
+        bookController.addBook(book);
+
+        String bookJson = objectMapper.writeValueAsString(book);
+
+        mockMvc.perform(post("/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(bookJson)).andExpect(status().isBadRequest());
+
+        bookController.deleteById(ID);
+    }
+
+    @Test
+    void updateBookTest() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
@@ -68,13 +85,31 @@ class BookControllerTest{
 
         bookController.deleteById(ID);
     }
+
     @Test
-    void deleteBook() throws Exception{
+    void updateBookFailTest() throws Exception{
+        BookDto bookUpdate = new BookDto("Pride",
+                "Romance", "Austen", "A story of love.");
+        String bookUpdateJson = objectMapper.writeValueAsString(bookUpdate);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/books/{id}", ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bookUpdateJson))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteBookTest() throws Exception{
         Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/books/{id}",ID))
                 .andExpect(status().isNoContent());
+    }
+    @Test
+    void deleteBookFailTest() throws Exception{
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/{id}",ID))
+                .andExpect(status().isNotFound());
     }
 }

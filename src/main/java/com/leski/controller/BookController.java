@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class BookController {
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
         List<Book> books = bookService.getAllBooks(pageNo, pageSize);
-        if(books.isEmpty()){
+        if(books == null){
             log.info("Page N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
         }
@@ -71,13 +72,17 @@ public class BookController {
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Удаление книги")
-    public ResponseEntity<Void> deleteById(@PathVariable @Size(min = 17, max = 17) String id){
+    public ResponseEntity<String> deleteById(@PathVariable @Size(min = 17, max = 17) String id){
         if(!bookService.existsBookById(id))
         {
             log.warn("Book by ID " + id + " does not exist.");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
-        bookService.deleteById(id);
+        boolean isDeleted = bookService.deleteById(id);
+        if(!isDeleted){
+            log.warn("Book by ID " + id + " is busy.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("IS_BUSY");
+        }
         log.info("Book by ID " + id + " was deleted.");
         return ResponseEntity.noContent().build();
     }
@@ -97,12 +102,6 @@ public class BookController {
         book.setName(bookUpdateDto.getName());
         book.setGenre(bookUpdateDto.getGenre());
         book.setDescription(bookUpdateDto.getDescription());
-        if(book.getName().trim().isEmpty()
-                || book.getGenre().trim().isEmpty()
-                || book.getAuthor().trim().isEmpty() ){
-            log.warn("Fields should be not null.");
-            return ResponseEntity.notFound().build();
-        }
         bookService.updateBook(book);
         log.info("Book by ID " + id + " was updated.");
         return ResponseEntity.ok(book);

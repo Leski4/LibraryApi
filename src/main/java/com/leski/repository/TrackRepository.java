@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TrackRepository extends JpaRepository<Track, String> {
     Page<Track> findAllByStatus(Status status, Pageable pageable);
+    boolean existsByBookIsbn(String bookIsbn);
 }

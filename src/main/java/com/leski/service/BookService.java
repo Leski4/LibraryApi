@@ -14,9 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -37,7 +35,7 @@ public class BookService {
         if(pagedResult.hasContent()){
             books = pagedResult.getContent();
         }else
-            return new ArrayList<Book>();
+            return null;
 
         return books;
     }
@@ -59,7 +57,15 @@ public class BookService {
     public void updateBook(Book book){
         bookRepository.save(book);
     }
-    public void deleteById(String id){
-        bookRepository.deleteById(id);
+    public boolean deleteById(String id){
+        Track track = trackRepository.findById(id).orElse(null);
+        if(track == null){
+            return false;
+        }
+        if(track.getStatus().name().equals("IS_FREE")){
+            bookRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

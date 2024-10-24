@@ -1,10 +1,8 @@
 package com.leski.controller;
 
-import com.leski.dto.BookDto;
 import com.leski.dto.TrackOfBookDto;
 import com.leski.model.Book;
 import com.leski.model.Status;
-import com.leski.model.Track;
 import com.leski.service.LibraryService;
 import com.leski.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -43,7 +42,7 @@ public class LibraryController {
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
         List<Book> freeBooks = libraryService.getAllFreeBooks(pageNo, pageSize);
-        if(freeBooks.isEmpty()){
+        if(freeBooks == null){
             log.info("Page of free books by number N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
         }
@@ -53,12 +52,12 @@ public class LibraryController {
     @GetMapping("/admin")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Учёт книг")
-    public ResponseEntity<List<Track>> getAllTracks(
+    public ResponseEntity<List<TrackOfBookDto>> getAllTracks(
             @RequestParam(defaultValue = "0") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
-        List<Track> trackOfBooks = libraryService.getAllTracksOfBooks(pageNo, pageSize);
-        if(trackOfBooks.isEmpty())
+        List<TrackOfBookDto> trackOfBooks = libraryService.getAllTracksOfBooks(pageNo, pageSize);
+        if(trackOfBooks == null)
         {
             log.info("Page of tracks of books by number N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
@@ -70,7 +69,12 @@ public class LibraryController {
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Взять книгу")
     public ResponseEntity<TrackOfBookDto> takeBook(@PathVariable @Size(min = 17, max = 17) String id) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        String username;
+        try {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        }catch (NullPointerException ex){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         TrackOfBookDto trackOfBook = new TrackOfBookDto(id, Status.IS_BUSY, LocalDateTime.now(), username);
         trackOfBook = libraryService.makeTrack(trackOfBook);
@@ -86,22 +90,27 @@ public class LibraryController {
     @SecurityRequirement(name="JWT")
     @Operation(summary = "Вернуть книгу")
     public ResponseEntity<Void> returnBook(@PathVariable @Size(min = 17, max = 17) String id){
+        String username;
+        try {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        }catch (NullPointerException ex){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         TrackOfBookDto trackOfBook = libraryService.getTrackByBookIsbn(id);
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
         if(trackOfBook == null)
         {
             log.warn("User " + username + " does not has the book by ID: " + id + ".");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         if(!Objects.equals(trackOfBook.getReaderName(), username)) {
             log.warn("User " + username + " cannot return book by ID: " + id + ".");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         boolean result = libraryService.deleteTrack(trackOfBook);
         if(!result)
         {
             log.warn("Book by ID " + id + " didn't return.");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         log.info("User: " + username + " returned book by ID: " + id + ".");
         return ResponseEntity.noContent().build();
@@ -132,17 +141,17 @@ public class LibraryController {
                                             @PathVariable @Size(min = 17, max = 17) String id){
         if(!userService.existsUser(username)){
             log.warn("User: " + username + " does not exist.");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.badRequest().build();
         }
         TrackOfBookDto trackOfBook = libraryService.getTrackByBookIsbn(id);
         if(trackOfBook == null){
             log.warn("User by name " + username + " does not has the book by ID: " + id + ".");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         boolean result = libraryService.deleteTrack(trackOfBook);
         if(!result){
             log.warn("Book by ID " + id + " didn't return.");
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         log.info("Book by ID " + id + " was returned.");
         return ResponseEntity.noContent().build();
