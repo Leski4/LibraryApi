@@ -1,34 +1,26 @@
 package com.leski.controller;
 
 import com.leski.dto.BookDto;
-import com.leski.model.Book;
 import com.leski.repository.BookRepository;
 import com.leski.security.JwtAuthenticationFilter;
-import com.leski.service.LibraryService;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithAnonymousUser;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-import static java.lang.String.format;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-
+@Testcontainers
 @SpringBootTest
 public class LibraryControllerTest {
     @Autowired
@@ -37,6 +29,15 @@ public class LibraryControllerTest {
     private BookController bookController;
     @Autowired
     private BookRepository bookRepository;
+    @Container
+    private static final PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry){
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
     private MockMvc mockMvc;
     private final String ID = "978-0-14-143951-8";
     private final String USERNAME = "user";
@@ -62,7 +63,7 @@ public class LibraryControllerTest {
 
     @Test
     void takeBookTestWithJWT() throws Exception{
-        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -75,7 +76,7 @@ public class LibraryControllerTest {
 
     @Test
     void getTracksOfBooksTest() throws Exception{
-        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -89,7 +90,7 @@ public class LibraryControllerTest {
 
     @Test
     void returnBookTestWithJWT() throws Exception{
-        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -104,7 +105,7 @@ public class LibraryControllerTest {
 
     @Test
     void makeTrackTest() throws Exception{
-        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -121,7 +122,7 @@ public class LibraryControllerTest {
     }
     @Test
     void deleteTrackTest() throws Exception{
-        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 
@@ -135,7 +136,7 @@ public class LibraryControllerTest {
 
     @Test
     void deleteTrackFailTest() throws Exception{
-        Book book = new Book(ID,"Pride and Prejudice","Romance","Jane Austen"
+        BookDto book = new BookDto(ID,"Pride and Prejudice","Romance","Jane Austen"
                 ,"A story of love and misunderstandings in early 19th century England.");
         bookController.addBook(book);
 

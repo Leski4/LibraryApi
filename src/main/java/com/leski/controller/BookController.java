@@ -1,7 +1,6 @@
 package com.leski.controller;
 
 import com.leski.dto.BookDto;
-import com.leski.model.Book;
 import com.leski.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,11 +31,11 @@ public class BookController {
     @GetMapping("")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Получение всех книг")
-    public ResponseEntity<List<Book>> getBooks(
+    public ResponseEntity<List<BookDto>> getBooks(
             @RequestParam(defaultValue = "0") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
-        List<Book> books = bookService.getAllBooks(pageNo, pageSize);
+        List<BookDto> books = bookService.getAllBooks(pageNo, pageSize);
         if(books == null){
             log.info("Page N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
@@ -59,7 +58,7 @@ public class BookController {
     @PostMapping("")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Добавление книги")
-    public ResponseEntity<Book> addBook(@RequestBody @Valid Book book){
+    public ResponseEntity<BookDto> addBook(@RequestBody @Valid BookDto book){
         if(bookService.existsBookById(book.getIsbn()))
         {
             log.warn("Book by ID " + book.getIsbn() + " is already exists.");
@@ -89,21 +88,15 @@ public class BookController {
     @PutMapping("/{id}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Редактирование книги по id")
-    public ResponseEntity<Book> updateBook(@PathVariable @Size(min = 17, max = 17) String id,
-                                           @RequestBody @Valid BookDto bookUpdateDto){
+    public ResponseEntity<BookDto> updateBook(@RequestBody @Valid BookDto bookUpdate){
+        String id = bookUpdate.getIsbn();
         if(!bookService.existsBookById(id))
         {
             log.warn("Book by ID " + id + " does not exist.");
             return ResponseEntity.notFound().build();
         }
-        Book book = new Book();
-        book.setIsbn(id);
-        book.setAuthor(bookUpdateDto.getAuthor());
-        book.setName(bookUpdateDto.getName());
-        book.setGenre(bookUpdateDto.getGenre());
-        book.setDescription(bookUpdateDto.getDescription());
-        bookService.updateBook(book);
+        bookService.updateBook(bookUpdate);
         log.info("Book by ID " + id + " was updated.");
-        return ResponseEntity.ok(book);
+        return ResponseEntity.ok(bookUpdate);
     }
 }

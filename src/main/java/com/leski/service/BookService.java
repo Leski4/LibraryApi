@@ -27,7 +27,7 @@ public class BookService {
         this.bookRepository = bookRepository;
         this.trackRepository = trackRepository;
     }
-    public List<Book> getAllBooks(Integer pageNo, Integer pageSize){
+    public List<BookDto> getAllBooks(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Book> pagedResult = bookRepository.findAll(pageable);
         List<Book> books;
@@ -37,7 +37,9 @@ public class BookService {
         }else
             return null;
 
-        return books;
+        return books.stream()
+                .map(book -> modelMapper.map(book, BookDto.class))
+                .toList();
     }
     public BookDto getBookById(String id){
         Book book = bookRepository.findById(id).orElse(null);
@@ -48,13 +50,15 @@ public class BookService {
     public boolean existsBookById(String id){
         return bookRepository.existsByIsbn(id);
     }
-    public void addBook(Book book){
+    public void addBook(BookDto bookNew){
+        Book book = modelMapper.map(bookNew, Book.class);
         bookRepository.save(book);
         Track track = new Track(book.getIsbn(), Status.IS_FREE,
                 null,null, book);
         trackRepository.save(track);
     }
-    public void updateBook(Book book){
+    public void updateBook(BookDto bookUpdate){
+        Book book = modelMapper.map(bookUpdate, Book.class);
         bookRepository.save(book);
     }
     public boolean deleteById(String id){

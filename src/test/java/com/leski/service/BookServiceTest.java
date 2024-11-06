@@ -1,8 +1,6 @@
 package com.leski.service;
 
-import com.leski.model.Book;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeEach;
+import com.leski.dto.BookDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,10 +11,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @SpringBootTest
@@ -48,7 +44,7 @@ public class BookServiceTest {
 
     @Test
     void addBookTest(){
-        bookService.addBook(new Book("978-0-14-143951-8","Pride and Prejudice",
+        bookService.addBook(new BookDto("978-0-14-143951-8","Pride and Prejudice",
                 "Romance","Jane Austen",
                 "A story of love and misunderstandings in early 19th century England."));
         assertTrue(bookService.existsBookById("978-0-14-143951-8"));

@@ -1,7 +1,7 @@
 package com.leski.service;
 
+import com.leski.dto.BookDto;
 import com.leski.dto.TrackOfBookDto;
-import com.leski.model.Book;
 import com.leski.model.Status;
 import com.leski.model.Track;
 import com.leski.repository.TrackRepository;
@@ -48,7 +48,7 @@ public class LibraryService {
                 .toList();
     }
 
-    public List<Book> getAllFreeBooks(Integer pageNo, Integer pageSize){
+    public List<BookDto> getAllFreeBooks(Integer pageNo, Integer pageSize){
         Pageable pageable = PageRequest.of(pageNo,pageSize);
 
         Page<Track> pagedResult = trackRepository.findAllByStatus(Status.IS_FREE, pageable);
@@ -61,6 +61,7 @@ public class LibraryService {
 
         return freeBooks.stream()
                 .map(Track::getBook)
+                .map(book -> modelMapper.map(book, BookDto.class))
                 .toList();
     }
 

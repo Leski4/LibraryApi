@@ -1,7 +1,7 @@
 package com.leski.controller;
 
+import com.leski.dto.BookDto;
 import com.leski.dto.TrackOfBookDto;
-import com.leski.model.Book;
 import com.leski.model.Status;
 import com.leski.service.LibraryService;
 import com.leski.service.UserService;
@@ -37,11 +37,11 @@ public class LibraryController {
     @GetMapping("")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Получение списка свободных книг")
-    public ResponseEntity<List<Book>> getAllFreeBooks(
+    public ResponseEntity<List<BookDto>> getAllFreeBooks(
             @RequestParam(defaultValue = "0") Integer pageNo,
             @RequestParam(defaultValue = "10") Integer pageSize
     ){
-        List<Book> freeBooks = libraryService.getAllFreeBooks(pageNo, pageSize);
+        List<BookDto> freeBooks = libraryService.getAllFreeBooks(pageNo, pageSize);
         if(freeBooks == null){
             log.info("Page of free books by number N " + pageNo + " is empty.");
             return ResponseEntity.noContent().build();
